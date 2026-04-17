@@ -6,10 +6,19 @@
         "mac": "2.2081",
         "ios": "2.2081"
     },
-    "id": "le10x.plat.swapper",
-    "name": "Plat Swapper",
+    "id": "le10x.double_tap_pause_buttons",
+    "name": "Double Tap Pause Buttons",
     "developer": "le10x",
     "version": "v1.0.0",
-    "description": "No description provided.",
+    "description": "A mod that requires quick clicking to activate the pause menu buttons!",
     "repository": "https://github.com"
+    "settings": {
+		    "lock-play": { "name": "Protect Play Button", "type": "bool", "default": true },
+	    	"lock-editor": { "name": "Protect Editor Button", "type": "bool", "default": false },
+	    	"lock-practice": { "name": "Protect Practice Button", "type": "bool", "default": false },
+	    	"lock-exit": { "name": "Protect Exit Button", "type": "bool", "default": true },
+		    "lock-reset": { "name": "Protect Reset Button", "type": "bool", "default": true },
+	    	"lock-exit-practice": { "name": "Protect Exit Practice", "type": "bool", "default": false },
+	    	"lock-reset-plat": { "name": "Protect Reset All (Plat)", "type": "bool", "default": false }
+    }
 }
