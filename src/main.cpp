@@ -10,12 +10,11 @@ class $modify(MyPauseLayer, PauseLayer) {
         int m_clickCount = 0;
         CCObject* m_lastButton = nullptr;
         std::chrono::system_clock::time_point m_lastClickTime;
-        bool m_isChangingMode = false; // Nueva bandera para ignorar protección
     };
 
     void handleSafeClick(CCObject* sender, std::string_view settingKey, std::function<void(CCObject*)> originalFunc) {
-        // Si estamos cambiando de modo (práctica <-> normal), ignoramos la protección de 2 clics
-        if (m_fields->m_isChangingMode || !Mod::get()->getSettingValue<bool>(std::string(settingKey))) {
+        // Si el check en mod.json está apagado, ejecutar normal y salir
+        if (!Mod::get()->getSettingValue<bool>(std::string(settingKey))) {
             originalFunc(sender);
             return;
         }
@@ -23,6 +22,7 @@ class $modify(MyPauseLayer, PauseLayer) {
         auto ahora = std::chrono::system_clock::now();
         auto tiempoTranscurrido = std::chrono::duration_cast<std::chrono::milliseconds>(ahora - m_fields->m_lastClickTime).count();
 
+        // Reiniciar si es un botón distinto o pasó mucho tiempo
         if (m_fields->m_lastButton != sender || tiempoTranscurrido > 500) {
             m_fields->m_clickCount = 0;
             this->removeChildByTag(69420);
@@ -61,16 +61,13 @@ class $modify(MyPauseLayer, PauseLayer) {
         handleSafeClick(s, "lock-play", [this](CCObject* o) { PauseLayer::onResume(o); }); 
     }
 
+    // Separamos la lógica de práctica para que sea independiente
     void onPracticeMode(CCObject* s) { 
-        m_fields->m_isChangingMode = true; // Activamos bandera
         handleSafeClick(s, "lock-practice", [this](CCObject* o) { PauseLayer::onPracticeMode(o); }); 
-        m_fields->m_isChangingMode = false; // Desactivamos
     }
 
     void onNormalMode(CCObject* s) { 
-        m_fields->m_isChangingMode = true; // Activamos bandera
         handleSafeClick(s, "lock-exit-practice", [this](CCObject* o) { PauseLayer::onNormalMode(o); }); 
-        m_fields->m_isChangingMode = false; // Desactivamos
     }
 
     void onQuit(CCObject* s) { handleSafeClick(s, "lock-exit", [this](CCObject* o) { PauseLayer::onQuit(o); }); }
