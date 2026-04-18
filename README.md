@@ -1,2 +1,2 @@
-# Swing Flip
-Make the GD Swing Copter invert when changing gravity.
+# Double Tap Pause Buttons
+A Geode mod that requires quick clicking to activate the pause menu buttons!
