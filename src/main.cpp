@@ -11,48 +11,47 @@ class $modify(MyPauseLayer, PauseLayer) {
         std::chrono::system_clock::time_point m_lastClickTime;
     };
 
-    bool init() {
-        if (!PauseLayer::init()) return false;
+    // Corregido: Ahora acepta el argumento 'unfocused'
+    bool init(bool unfocused) {
+        if (!PauseLayer::init(unfocused)) return false;
 
-        // Si la opacidad está habilitada, bajamos la transparencia inicial de los botones
         if (Mod::get()->getSettingValue<bool>("enable-opacity")) {
-            this->applyOpacityToButtons(180); // ~70% de opacidad
+            this->applyOpacityToButtons(180); 
         }
         return true;
     }
 
     void applyOpacityToButtons(uint8_t opacity) {
-        // Buscamos los botones comunes por sus IDs de Geode (Node IDs)
         const char* buttons[] = {"exit-button", "restart-button", "practice-button"};
         for (const char* id : buttons) {
             if (auto btn = this->getChildByIDRecursive(id)) {
-                btn->setOpacity(opacity);
+                // Corregido: Cast a CCRGBAProtocol para poder usar setOpacity
+                if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(btn)) {
+                    rgba->setOpacity(opacity);
+                }
             }
         }
     }
 
     void handleSafeClick(CCObject* sender, std::string_view settingKey, std::function<void(CCObject*)> originalFunc) {
-        // 1. Verificar si la protección está activa para este botón
         if (!Mod::get()->getSettingValue<bool>(std::string(settingKey))) {
             originalFunc(sender);
             return;
         }
 
-        // 2. Verificar Porcentaje (solo en niveles clásicos)
         auto playLayer = PlayLayer::get();
         if (playLayer && !playLayer->m_isPlatformer) {
-            int minPercent = Mod::get()->getSettingValue<int64_t>("min-percent");
-            if (playLayer->getCurrentPercent() < minPercent) {
+            int64_t minPercent = Mod::get()->getSettingValue<int64_t>("min-percent");
+            if (playLayer->getCurrentPercent() < static_cast<double>(minPercent)) {
                 originalFunc(sender);
                 return;
             }
         }
 
         auto ahora = std::chrono::system_clock::now();
-        int speedLimit = Mod::get()->getSettingValue<int64_t>("click-speed");
+        int64_t speedLimit = Mod::get()->getSettingValue<int64_t>("click-speed");
         auto tiempoTranscurrido = std::chrono::duration_cast<std::chrono::milliseconds>(ahora - m_fields->m_lastClickTime).count();
 
-        // 3. Lógica de reinicio si cambia de botón o pasa el tiempo
         if (m_fields->m_lastButton != sender || tiempoTranscurrido > speedLimit) {
             m_fields->m_clickCount = 0;
             this->removeChildByTag(69420);
@@ -67,9 +66,9 @@ class $modify(MyPauseLayer, PauseLayer) {
             m_fields->m_clickCount = 0;
             originalFunc(sender);
         } else {
-            // Efecto visual en el botón presionado
-            if (auto node = typeinfo_cast<CCNode*>(sender)) {
-                node->setOpacity(255); // Brillo total al primer clic
+            // Corregido: Cast para opacidad en el botón presionado
+            if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(sender)) {
+                rgba->setOpacity(255);
             }
 
             if (Mod::get()->getSettingValue<bool>("show-message")) {
@@ -96,7 +95,6 @@ class $modify(MyPauseLayer, PauseLayer) {
         }
     }
 
-    // Hooks
     void onQuit(CCObject* s) { handleSafeClick(s, "lock-exit", [this](CCObject* o) { PauseLayer::onQuit(o); }); }
     void onRestart(CCObject* s) { handleSafeClick(s, "lock-reset", [this](CCObject* o) { PauseLayer::onRestart(o); }); }
     void onRestartFull(CCObject* s) { handleSafeClick(s, "lock-reset-plat", [this](CCObject* o) { PauseLayer::onRestartFull(o); }); }
