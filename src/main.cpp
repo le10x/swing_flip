@@ -10,10 +10,12 @@ class $modify(MyPauseLayer, PauseLayer) {
         int m_clickCount = 0;
         CCObject* m_lastButton = nullptr;
         std::chrono::system_clock::time_point m_lastClickTime;
+        bool m_isChangingMode = false; // Nueva bandera para ignorar protección
     };
 
     void handleSafeClick(CCObject* sender, std::string_view settingKey, std::function<void(CCObject*)> originalFunc) {
-        if (!Mod::get()->getSettingValue<bool>(std::string(settingKey))) {
+        // Si estamos cambiando de modo (práctica <-> normal), ignoramos la protección de 2 clics
+        if (m_fields->m_isChangingMode || !Mod::get()->getSettingValue<bool>(std::string(settingKey))) {
             originalFunc(sender);
             return;
         }
@@ -31,12 +33,12 @@ class $modify(MyPauseLayer, PauseLayer) {
         m_fields->m_lastClickTime = ahora;
 
         if (m_fields->m_clickCount >= 2) {
-            m_fields->m_clickCount = 0; // Resetear antes de ejecutar
+            m_fields->m_clickCount = 0;
             originalFunc(sender);
         } else {
             auto label = CCLabelBMFont::create("Click again to confirm", "bigFont.fnt");
             auto winSize = CCDirector::get()->getWinSize();
-            label->setPosition({winSize.width / 2, winSize.height / 2 - 50}); // Un poco abajo del centro
+            label->setPosition({winSize.width / 2, winSize.height / 2 - 50});
             label->setScale(0.5f);
             label->setTag(69420);
             
@@ -53,32 +55,26 @@ class $modify(MyPauseLayer, PauseLayer) {
         }
     }
 
-    // Usamos onEdit que es el binding estándar
-    void onEdit(CCObject* s) { 
-        handleSafeClick(s, "lock-editor", [this](CCObject* o) { PauseLayer::onEdit(o); }); 
-    }
+    // --- Hooks ---
 
     void onResume(CCObject* s) { 
         handleSafeClick(s, "lock-play", [this](CCObject* o) { PauseLayer::onResume(o); }); 
     }
 
     void onPracticeMode(CCObject* s) { 
+        m_fields->m_isChangingMode = true; // Activamos bandera
         handleSafeClick(s, "lock-practice", [this](CCObject* o) { PauseLayer::onPracticeMode(o); }); 
+        m_fields->m_isChangingMode = false; // Desactivamos
     }
 
     void onNormalMode(CCObject* s) { 
+        m_fields->m_isChangingMode = true; // Activamos bandera
         handleSafeClick(s, "lock-exit-practice", [this](CCObject* o) { PauseLayer::onNormalMode(o); }); 
+        m_fields->m_isChangingMode = false; // Desactivamos
     }
 
-    void onQuit(CCObject* s) { 
-        handleSafeClick(s, "lock-exit", [this](CCObject* o) { PauseLayer::onQuit(o); }); 
-    }
-
-    void onRestart(CCObject* s) { 
-        handleSafeClick(s, "lock-reset", [this](CCObject* o) { PauseLayer::onRestart(o); }); 
-    }
-
-    void onRestartFull(CCObject* s) { 
-        handleSafeClick(s, "lock-reset-plat", [this](CCObject* o) { PauseLayer::onRestartFull(o); }); 
-    }
+    void onQuit(CCObject* s) { handleSafeClick(s, "lock-exit", [this](CCObject* o) { PauseLayer::onQuit(o); }); }
+    void onRestart(CCObject* s) { handleSafeClick(s, "lock-reset", [this](CCObject* o) { PauseLayer::onRestart(o); }); }
+    void onRestartFull(CCObject* s) { handleSafeClick(s, "lock-reset-plat", [this](CCObject* o) { PauseLayer::onRestartFull(o); }); }
+    void onEdit(CCObject* s) { handleSafeClick(s, "lock-editor", [this](CCObject* o) { PauseLayer::onEdit(o); }); }
 };
