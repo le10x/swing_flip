@@ -15,10 +15,10 @@
     "settings": {
        "show-message": { "name": "Show Confirmation Message", "type": "bool", "default": true },
         "custom-text": { "name": "Custom Message Text", "type": "string", "default": "Click again to confirm" },
-        "message-opacity": { "name": "Message Opacity (%)", "type": "int", "default": 80, "min": 0, "max": 100, "control": "slider" },
+        "message-opacity": { "name": "Message Opacity (0-100)", "type": "int", "default": 80, "min": 0, "max": 100 },
         "use-gold-font": { "name": "Use Gold Font", "type": "bool", "default": false },
-        "click-speed": { "name": "Double Tap Speed (ms)", "type": "int", "default": 500, "min": 100, "max": 1000, "control": "slider" },
-        "min-percent": { "name": "Min Percent Activation", "type": "int", "default": 0, "min": 0, "max": 100, "control": "slider" },
+        "click-speed": { "name": "Double Tap Speed (100-1000ms)", "type": "int", "default": 500, "min": 100, "max": 1000 },
+        "min-percent": { "name": "Min Percent Activation (0-100)", "type": "int", "default": 0, "min": 0, "max": 100 },
         "lock-exit": { "name": "Protect Exit Button", "type": "bool", "default": true },
         "lock-reset": { "name": "Protect Reset Button", "type": "bool", "default": true },
         "lock-practice-all": { "name": "Protect Practice Buttons", "type": "bool", "default": false },
