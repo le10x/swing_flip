@@ -2,6 +2,7 @@
 #include <Geode/modify/PauseLayer.hpp>
 #include <chrono>
 #include <functional>
+#include <algorithm> // Para std::clamp
 
 using namespace geode::prelude;
 
@@ -25,15 +26,18 @@ class $modify(MyPauseLayer, PauseLayer) {
 
         auto playLayer = PlayLayer::get();
         if (playLayer && !playLayer->m_isPlatformer) {
-            auto minPercent = Mod::get()->getSettingValue<int64_t>("min-percent");
-            if (static_cast<int>(playLayer->getCurrentPercent()) < static_cast<int>(minPercent)) {
+            // Leemos el valor y lo limitamos entre 0 y 100 por seguridad
+            int64_t rawPercent = Mod::get()->getSettingValue<int64_t>("min-percent");
+            int minPercent = std::clamp(static_cast<int>(rawPercent), 0, 100);
+
+            if (static_cast<int>(playLayer->getCurrentPercent()) < minPercent) {
                 originalFunc(sender);
                 return;
             }
         }
 
         auto ahora = std::chrono::system_clock::now();
-        auto speedLimit = Mod::get()->getSettingValue<int64_t>("click-speed");
+        int64_t speedLimit = Mod::get()->getSettingValue<int64_t>("click-speed");
         auto tiempoTranscurrido = std::chrono::duration_cast<std::chrono::milliseconds>(ahora - m_fields->m_lastClickTime).count();
 
         if (m_fields->m_lastButton != sender || tiempoTranscurrido > speedLimit) {
@@ -52,7 +56,10 @@ class $modify(MyPauseLayer, PauseLayer) {
             if (Mod::get()->getSettingValue<bool>("show-message")) {
                 std::string texto = Mod::get()->getSettingValue<std::string>("custom-text");
                 bool gold = Mod::get()->getSettingValue<bool>("use-gold-font");
-                int64_t opacityPercent = Mod::get()->getSettingValue<int64_t>("message-opacity");
+                
+                // Limitamos opacidad también entre 0 y 100
+                int64_t rawOpacity = Mod::get()->getSettingValue<int64_t>("message-opacity");
+                int opacityPercent = std::clamp(static_cast<int>(rawOpacity), 0, 100);
                 
                 auto label = CCLabelBMFont::create(texto.c_str(), gold ? "goldFont.fnt" : "bigFont.fnt");
                 auto winSize = CCDirector::get()->getWinSize();
@@ -61,7 +68,6 @@ class $modify(MyPauseLayer, PauseLayer) {
                 label->setScale(0.5f);
                 label->setTag(69420);
                 
-                // Convertir 0-100 a 0-255 para Cocos2d-x
                 GLubyte opacityValue = static_cast<GLubyte>((opacityPercent * 255) / 100);
                 label->setOpacity(opacityValue);
                 
