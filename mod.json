@@ -17,7 +17,13 @@
         "custom-text": { "name": "Custom Message Text", "type": "string", "default": "Click again to confirm" },
         "message-opacity": { "name": "Message Opacity (0-100)", "type": "int", "default": 80, "min": 0, "max": 100 },
         "use-gold-font": { "name": "Use Gold Font", "type": "bool", "default": false },
-        "click-speed": { "name": "Double Tap Speed (100-1000ms)", "type": "int", "default": 500, "min": 100, "max": 1000 },
+        "click-speed": { 
+            "name": "Double Tap Speed", 
+            "type": "int", 
+            "default": 500,
+            "one-of": [250, 500, 750, 1000],
+            "controls": "arrows"
+        },
         "min-percent": { "name": "Min Percent Activation (0-100)", "type": "int", "default": 0, "min": 0, "max": 100 },
         "lock-exit": { "name": "Protect Exit Button", "type": "bool", "default": true },
         "lock-reset": { "name": "Protect Reset Button", "type": "bool", "default": true },
